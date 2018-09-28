@@ -25,7 +25,12 @@ def get_function_parameters(call_def):
 
     params = []
     for param in call_def.params:
-        cleaned_param = param.get_code().strip()
+        cleaned_param = ''
+        cleaned_param = param.description.strip()
+        # try:
+        #     cleaned_param = param.description.strip()
+        # except:
+        #     cleaned_param = param.get_code().strip()
         if '*' in cleaned_param or cleaned_param == 'self':
             continue
 
