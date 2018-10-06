@@ -24,7 +24,12 @@ class AnacondaCompletionEventListener(sublime_plugin.EventListener):
     ready_from_defer = False
 
     @profile
-    def on_query_completions(self, view: sublime.View, prefix: str, locations: List[Tuple[int]]) -> Tuple[List[Tuple[str]], int]:  # noqa
+    def on_query_completions(
+        self,
+        view: sublime.View,
+        prefix: str,
+        locations: List[Tuple[int]]
+    ) -> Tuple[List[Tuple[str]], int]:  # noqa
         """Sublime Text autocompletion event handler
         """
 
