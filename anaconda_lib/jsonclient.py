@@ -11,16 +11,12 @@ import uuid
 import socket
 import logging
 import traceback
+import json
 
 try:
     import sublime
 except ImportError:
     pass
-
-try:
-    import ujson as json
-except ImportError:
-    import json
 
 from .callback import Callback
 from .ioloop import EventHandler

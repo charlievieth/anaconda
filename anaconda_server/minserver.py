@@ -11,14 +11,9 @@ import logging
 import asyncore
 import asynchat
 import traceback
+import json
 from logging import handlers
 from optparse import OptionParser
-
-# we use ujson if it's available on the target intrepreter
-try:
-    import ujson as json
-except ImportError:
-    import json
 
 sys.path.insert(0, os.path.join(
     os.path.split(os.path.split(__file__)[0])[0], 'anaconda_lib'))
