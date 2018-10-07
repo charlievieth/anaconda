@@ -4,6 +4,7 @@
 # This program is Free Software see LICENSE file for details
 
 import logging
+import os
 
 import jedi
 from lib.anaconda_handler import AnacondaHandler
@@ -12,6 +13,9 @@ from commands import Doc, Goto, GotoAssignment, Rename, FindUsages
 from commands import CompleteParameters, AutoComplete
 
 logger = logging.getLogger('')
+
+# WARN (CEV): cache this and handle interpreter changes
+jedi_environment = jedi.get_system_environment('3.7')
 
 
 class JediHandler(AnacondaHandler):
@@ -46,12 +50,31 @@ class JediHandler(AnacondaHandler):
 
         return self.jedi_script(**self.data)
 
+    def get_environment(self):
+        # WARN (CEV): we probably don't wanna do this - since it might
+        # break per-project settings.
+        if os.getenv('VIRTUAL_ENV'):
+            try:
+                return jedi.get_default_environment()
+            except Exception as e:
+                logger.exception('loading VIRTUAL_ENV: {}'.format(
+                                 os.getenv('VIRTUAL_ENV')))
+        return jedi_environment
+
     def jedi_script(
             self, source, line, offset, filename='', encoding='utf8', **kw):
         """Generate an usable Jedi Script
         """
-
-        return jedi.Script(source, int(line), int(offset), filename, encoding)
+        environment = self.get_environment()
+        return jedi.Script(
+            source=source,
+            line=int(line),
+            column=int(offset),
+            path=filename,
+            encoding=encoding,
+            sys_path=None,
+            environment=environment,
+        )
 
     def rename(self, directories, new_word):
         """Rename the object under the cursor by the given word
