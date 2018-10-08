@@ -18,8 +18,12 @@ import json
 from optparse import OptionParser
 
 
-sys.path.insert(0, os.path.join(
-    os.path.split(os.path.split(__file__)[0])[0], 'anaconda_lib'))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ANACONDA_LIB = os.path.abspath(os.path.join(SCRIPT_DIR, '..', 'anaconda_lib'))
+
+sys.path.insert(0, ANACONDA_LIB)
+sys.path.insert(0, os.path.join(ANACONDA_LIB, 'jedi'))
+sys.path.insert(0, os.path.join(ANACONDA_LIB, 'parso'))
 
 from lib.path import log_directory
 from lib.util import setup_queue_logger
@@ -349,8 +353,7 @@ if __name__ == "__main__":
             logger.info('Anaconda Server started in DEBUG mode...')
             print('DEBUG MODE')
             DEBUG_MODE = True
-            # WARN (CEV): DEBUG ONLY
-            # set_debug_function(notices=True)
+            set_debug_function(notices=True)
 
         # start the server
         server.serve_forever()
