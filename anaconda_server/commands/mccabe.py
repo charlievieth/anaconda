@@ -7,6 +7,8 @@ import traceback
 
 from .base import Command
 
+logger = logging.getLogger('mccabe')
+
 
 class McCabe(Command):
     """Run McCabe complexity checker and return back results
@@ -32,9 +34,11 @@ class McCabe(Command):
                 'vid': self.vid
             })
         except Exception as error:
+            # WARN (CEV): print statement
             print(error)
-            logging.error(error)
-            logging.debug(traceback.format_exc().splitlines())
+            # TODO (CEV): use logger.exception()
+            logger.error(error)
+            logger.debug(traceback.format_exc().splitlines())
             self.callback({
                 'success': False,
                 'error': str(error),

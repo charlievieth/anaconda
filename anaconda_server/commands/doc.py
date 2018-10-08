@@ -7,6 +7,8 @@ import logging
 
 from .base import Command
 
+logger = logging.getLogger('doc')
+
 # We are forced to use this not Pythonic import approach as the incomplete
 # module `future.moves.html` distributed by https://github.com/PythonCharmers
 # breaks the doc.py logic if it is present in the user sysrem as it contains
@@ -40,8 +42,9 @@ class Doc(Command):
         try:
             definitions = self.script.goto_definitions()
         except Exception as error:
-            logging.debug(error)
-            logging.debug(self.script)
+            # TODO (CEV): use logger.exception()
+            logger.debug(error)
+            logger.debug(self.script)
             definitions = []
 
         if not definitions:

@@ -7,6 +7,8 @@ import traceback
 
 from .base import Command
 
+logger = logging.getLogger('import_validator')
+
 
 class ImportValidator(Command):
     """Run the ImportValidate to detect invalid imports
@@ -32,8 +34,9 @@ class ImportValidator(Command):
                 'vid': self.vid
             })
         except Exception as error:
-            logging.error(error)
-            logging.debug(traceback.format_exc().splitlines())
+            # TODO (CEV): use logger.exception()
+            logger.error(error)
+            logger.debug(traceback.format_exc().splitlines())
             self.callback({
                 'success': False,
                 'error': error,

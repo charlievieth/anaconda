@@ -8,6 +8,7 @@ import traceback
 from .base import Command
 
 DEBUG_MODE = False
+logger = logging.getLogger('autocomplete')
 
 
 class AutoComplete(Command):
@@ -25,7 +26,7 @@ class AutoComplete(Command):
         try:
             completions = self.script.completions()
             if DEBUG_MODE is True:
-                logging.info(completions)
+                logger.info(completions)
             data = [
                 ('{0}\t{1}'.format(comp.name, comp.type), comp.name)
                 for comp in completions
@@ -35,11 +36,11 @@ class AutoComplete(Command):
             })
         except Exception as error:
             msg = 'The underlying Jedi library as raised an exception'
-            logging.error(msg)
-            logging.error(error)
+            logger.error(msg)
+            logger.error(error)
             print(traceback.format_exc())
             if DEBUG_MODE:
-                logging.debug(traceback.format_exc())
+                logger.debug(traceback.format_exc())
 
             self.callback({
                 'success': False, 'error': str(error), 'uid': self.uid

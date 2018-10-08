@@ -6,6 +6,8 @@ import os
 import logging
 import subprocess
 
+logger = logging.getLogger('process')
+
 
 def spawn(args, **kwargs):
     """Spawn a subprocess and return it back
@@ -26,5 +28,6 @@ def spawn(args, **kwargs):
         msg = (
             'Your operating system denied the spawn of {0} process: {1}'
         ).format(args[0], error)
-        logging.error(msg)
+        # TODO (CEV): use logger.exception()
+        logger.error(msg)
         raise RuntimeError(msg)

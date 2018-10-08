@@ -12,7 +12,6 @@ import asyncore
 import asynchat
 import traceback
 import json
-from logging import handlers
 from optparse import OptionParser
 
 sys.path.insert(0, os.path.join(
@@ -21,12 +20,13 @@ sys.path.insert(0, os.path.join(
 from jedi import settings as jedi_settings
 
 from lib.path import log_directory
+from lib.util import setup_logger
 from lib.contexts import json_decode
 from handlers import ANACONDA_HANDLERS
 from lib.anaconda_handler import AnacondaHandler
 
 DEBUG_MODE = False
-logger = logging.getLogger('')
+logger = logging.getLogger('minserver')
 PY3 = True if sys.version_info >= (3,) else False
 
 
@@ -50,7 +50,7 @@ class JSONHandler(asynchat.async_chat):
 
             if DEBUG_MODE is True:
                 print('About push back to ST3: {0}'.format(data))
-                logging.info('About push back to ST3: {0}'.format(data))
+                logger.info('About push back to ST3: {0}'.format(data))
             self.push(data)
 
     def collect_incoming_data(self, data):
@@ -68,7 +68,7 @@ class JSONHandler(asynchat.async_chat):
 
         with json_decode(message) as data:
             if not data:
-                logging.info('No data received in the handler')
+                logger.info('No data received in the handler')
                 return
 
             if data['method'] == 'check':
@@ -78,7 +78,7 @@ class JSONHandler(asynchat.async_chat):
             self.server.last_call = time.time()
 
         if type(data) is dict:
-            logging.info(
+            logger.info(
                 'client requests: {0}'.format(data['method'])
             )
 
@@ -88,7 +88,7 @@ class JSONHandler(asynchat.async_chat):
             handler_type = data.pop('handler')
             self.handle_command(handler_type, method, uid, vid, data)
         else:
-            logging.error(
+            logger.error(
                 'client sent something that I don\'t understand: {0}'.format(
                     data
                 )
@@ -125,9 +125,9 @@ class JSONServer(asyncore.dispatcher):
         self.last_call = time.time()
 
         self.bind(self.address)
-        logging.debug('bind: address=%s' % (address,))
+        logger.debug('bind: address=%s' % (address,))
         self.listen(self.request_queue_size)
-        logging.debug('listen: backlog=%d' % (self.request_queue_size,))
+        logger.debug('listen: backlog=%d' % (self.request_queue_size,))
 
     @property
     def fileno(self):
@@ -150,36 +150,15 @@ class JSONServer(asyncore.dispatcher):
         """Called when close
         """
 
-        logging.info('Closing the socket, server will be shutdown now...')
+        logger.info('Closing the socket, server will be shutdown now...')
         self.close()
-
-
-def get_logger(path):
-    """Build file logger
-    """
-
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    log = logging.getLogger('')
-    log.setLevel(logging.DEBUG)
-    hdlr = handlers.RotatingFileHandler(
-        filename=os.path.join(path, 'anaconda_jsonserver.log'),
-        maxBytes=10000000,
-        backupCount=5,
-        encoding='utf-8'
-    )
-    formatter = logging.Formatter('%(asctime)s: %(levelname)-8s: %(message)s')
-    hdlr.setFormatter(formatter)
-    log.addHandler(hdlr)
-    return log
 
 
 def log_traceback():
     """Just log the traceback
     """
 
-    logging.error(get_log_traceback())
+    logger.error(get_log_traceback())
 
 
 def get_log_traceback():
@@ -191,6 +170,7 @@ def get_log_traceback():
         error.append(traceback_line)
 
     return '\n'.join(error)
+
 
 if __name__ == "__main__":
     opt_parser = OptionParser(usage=(
@@ -216,6 +196,7 @@ if __name__ == "__main__":
             jedi_settings.cache_directory, options.project
         )
         log_directory = os.path.join(log_directory, options.project)
+    setup_logger(log_directory)
 
     if not os.path.exists(jedi_settings.cache_directory):
         os.makedirs(jedi_settings.cache_directory)
@@ -224,8 +205,6 @@ if __name__ == "__main__":
         for path in options.extra_paths.split(','):
             if path not in sys.path:
                 sys.path.insert(0, path)
-
-    logger = get_logger(log_directory)
 
     try:
         server = JSONServer(('0.0.0.0', port))

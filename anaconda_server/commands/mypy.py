@@ -7,6 +7,8 @@ import traceback
 
 from .base import Command
 
+logger = logging.getLogger('mypy')
+
 
 class MyPy(Command):
     """Run mypy linter and return back results
@@ -37,8 +39,9 @@ class MyPy(Command):
                 'vid': self.vid,
             })
         except Exception as error:
-            logging.error(error)
-            logging.debug(traceback.format_exc())
+            # TODO (CEV): use logger.exception()
+            logger.error(error)
+            logger.debug(traceback.format_exc())
             self.callback({
                 'success': False,
                 'error': error,

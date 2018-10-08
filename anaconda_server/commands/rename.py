@@ -8,6 +8,8 @@ import traceback
 
 from .base import Command
 
+logger = logging.getLogger('rename')
+
 
 class Rename(Command):
     """Get back a python definition where to go
@@ -45,8 +47,9 @@ class Rename(Command):
                     })
             success = True
         except Exception as error:
-            logging.error(error)
-            logging.debug(traceback.format_exc().splitlines())
+            # TODO (CEV): use logger.exception()
+            logger.error(error)
+            logger.debug(traceback.format_exc().splitlines())
             success = False
 
         self.callback({

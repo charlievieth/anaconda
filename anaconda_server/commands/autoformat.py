@@ -14,6 +14,8 @@ import traceback
 from .base import Command
 from autopep.autopep8_lib import autopep8
 
+logger = logging.getLogger('autoformat')
+
 
 class AutoPep8(Command):
     """Run autopep8 in the given file
@@ -40,9 +42,9 @@ class AutoPep8(Command):
                 'vid': self.vid
             })
         except Exception as error:
-            logging.error(str(error))
+            logger.error(str(error))
             print(traceback.format_exc().splitlines())
-            logging.debug(traceback.format_exc().splitlines())
+            logger.debug(traceback.format_exc().splitlines())
             self.callback({
                 'success': False,
                 'error': str(error),

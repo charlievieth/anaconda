@@ -15,7 +15,6 @@ import threading
 import traceback
 import subprocess
 import json
-from logging import handlers
 from optparse import OptionParser
 
 
@@ -23,6 +22,7 @@ sys.path.insert(0, os.path.join(
     os.path.split(os.path.split(__file__)[0])[0], 'anaconda_lib'))
 
 from lib.path import log_directory
+from lib.util import setup_queue_logger
 from jedi import set_debug_function
 from lib.contexts import json_decode
 from unix_socket import UnixSocketPath
@@ -32,7 +32,7 @@ from lib.anaconda_handler import AnacondaHandler
 
 
 DEBUG_MODE = False
-logger = logging.getLogger('')
+logger = logging.getLogger('jsonserver')
 PY3 = True if sys.version_info >= (3,) else False
 
 
@@ -57,7 +57,7 @@ class JSONHandler(asynchat.async_chat):
 
             if DEBUG_MODE is True:
                 print('About push back to ST3: {0}'.format(data))
-                logging.info('About push back to ST3: {0}'.format(data))
+                logger.info('About push back to ST3: {0}'.format(data))
             self.push(data)
 
     def collect_incoming_data(self, data):
@@ -75,18 +75,18 @@ class JSONHandler(asynchat.async_chat):
 
         with json_decode(message) as data:
             if not data:
-                logging.info('No data received in the handler')
+                logger.info('No data received in the handler')
                 return
 
             if data['method'] == 'check':
-                logging.info('Check received')
+                logger.info('Check received')
                 self.return_back(message='Ok', uid=data['uid'])
                 return
 
             self.server.last_call = time.time()
 
         if type(data) is dict:
-            logging.info(
+            logger.info(
                 'client requests: {0}'.format(data['method'])
             )
 
@@ -101,14 +101,14 @@ class JSONHandler(asynchat.async_chat):
             try:
                 self.handle_command(handler_type, method, uid, vid, data)
             except Exception as error:
-                logging.error(error)
+                logger.error(error)
                 log_traceback()
                 self.return_back({
                     'success': False, 'uid': uid,
                     'vid': vid, 'error': str(error)
                 })
         else:
-            logging.error(
+            logger.error(
                 'client sent somethinf that I don\'t understand: {0}'.format(
                     data
                 )
@@ -150,9 +150,9 @@ class JSONServer(asyncore.dispatcher):
         self.last_call = time.time()
 
         self.bind(self.address)
-        logging.debug('bind: address=%s' % (address,))
+        logger.debug('bind: address=%s' % (address,))
         self.listen(self.request_queue_size)
-        logging.debug('listen: backlog=%d' % (self.request_queue_size,))
+        logger.debug('listen: backlog=%d' % (self.request_queue_size,))
 
     @property
     def fileno(self):
@@ -177,7 +177,7 @@ class JSONServer(asyncore.dispatcher):
         """Called when close
         """
 
-        logging.info('Closing the socket, server will be shutdown now...')
+        logger.info('Closing the socket, server will be shutdown now...')
         self.close()
 
 
@@ -200,7 +200,7 @@ class Checker(threading.Thread):
         while not self.die:
             if time.time() - self.server.last_call > self.MAX_INACTIVITY:
                 # is now more than 30 minutes of inactivity
-                self.server.logger.info(
+                logger.info(
                     'detected inactivity for more than 30 minutes... '
                     'shuting down...'
                 )
@@ -241,7 +241,7 @@ class Checker(threading.Thread):
         """
 
         if not self._isprocessrunning():
-            self.server.logger.info(
+            logger.info(
                 'process {0} does not exists stopping server...'.format(
                     self.pid
                 )
@@ -249,32 +249,10 @@ class Checker(threading.Thread):
             self.die = True
 
 
-def get_logger(path):
-    """Build file logger
-    """
-
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    log = logging.getLogger('')
-    log.setLevel(logging.DEBUG)
-    hdlr = handlers.RotatingFileHandler(
-        filename=os.path.join(path, 'anaconda_jsonserver.log'),
-        maxBytes=10000000,
-        backupCount=5,
-        encoding='utf-8'
-    )
-    formatter = logging.Formatter('%(asctime)s: %(levelname)-8s: %(message)s')
-    hdlr.setFormatter(formatter)
-    log.addHandler(hdlr)
-    return log
-
-
 def log_traceback():
     """Just log the traceback
     """
-
-    logging.error(traceback.format_exc())
+    logger.error(traceback.format_exc())
 
 
 if __name__ == "__main__":
@@ -316,6 +294,11 @@ if __name__ == "__main__":
         )
         log_directory = os.path.join(log_directory, options.project)
 
+    queue_listener = setup_queue_logger(
+        log_directory=log_directory,
+        debug=PID == 'DEBUG',
+    )
+
     if not os.path.exists(jedi_settings.cache_directory):
         os.makedirs(jedi_settings.cache_directory)
 
@@ -324,8 +307,7 @@ if __name__ == "__main__":
             if path not in sys.path:
                 sys.path.insert(0, path)
 
-    logger = get_logger(log_directory)
-
+    server = None
     try:
         if not LINUX:
             server = JSONServer(('localhost', port))
@@ -350,20 +332,27 @@ if __name__ == "__main__":
     except Exception as error:
         log_traceback()
         logger.error(str(error))
-        server.shutdown()
+        if server:
+            server.shutdown()
+        queue_listener.stop()
         sys.exit(-1)
 
+    # TODO (CEV): ignore this warning
     server.logger = logger
 
-    # start PID checker thread
-    if PID != 'DEBUG':
-        checker = Checker(server, pid=PID, delta=1)
-        checker.start()
-    else:
-        logger.info('Anaconda Server started in DEBUG mode...')
-        print('DEBUG MODE')
-        DEBUG_MODE = True
-        set_debug_function(notices=True)
+    try:
+        # start PID checker thread
+        if PID != 'DEBUG':
+            checker = Checker(server, pid=PID, delta=1)
+            checker.start()
+        else:
+            logger.info('Anaconda Server started in DEBUG mode...')
+            print('DEBUG MODE')
+            DEBUG_MODE = True
+            # WARN (CEV): DEBUG ONLY
+            # set_debug_function(notices=True)
 
-    # start the server
-    server.serve_forever()
+        # start the server
+        server.serve_forever()
+    finally:
+        queue_listener.stop()

@@ -12,7 +12,7 @@ from jedi import refactoring as jedi_refactor
 from commands import Doc, Goto, GotoAssignment, Rename, FindUsages
 from commands import CompleteParameters, AutoComplete
 
-logger = logging.getLogger('')
+logger = logging.getLogger('jedi_handler')
 
 # WARN (CEV): cache this and handle interpreter changes
 jedi_environment = jedi.get_system_environment('3.7')

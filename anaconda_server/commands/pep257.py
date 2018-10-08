@@ -7,6 +7,8 @@ import traceback
 
 from .base import Command
 
+logger = logging.getLogger('pep257')
+
 
 class PEP257(Command):
     """Run pep257 linter and return back results
@@ -33,8 +35,9 @@ class PEP257(Command):
                 'vid': self.vid,
             })
         except Exception as error:
-            logging.error(error)
-            logging.debug(traceback.format_exc().splitlines())
+            # TODO (CEV): use logger.exception()
+            logger.error(error)
+            logger.debug(traceback.format_exc().splitlines())
             self.callback({
                 'success': False,
                 'error': error,
