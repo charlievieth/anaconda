@@ -62,7 +62,7 @@ class JediHandler(AnacondaHandler):
         return jedi_environment
 
     def jedi_script(
-            self, source, line, offset, filename='', encoding='utf8', **kw):
+            self, source, line, offset, filename='', encoding='utf-8', **kw):
         """Generate an usable Jedi Script
         """
         environment = self.get_environment()
