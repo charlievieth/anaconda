@@ -13,11 +13,6 @@ import logging
 import traceback
 import json
 
-try:
-    import sublime
-except ImportError:
-    pass
-
 from .callback import Callback
 from .ioloop import EventHandler
 from ._typing import Callable, Any
