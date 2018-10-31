@@ -14,10 +14,19 @@ class Goto(Command):
         super(Goto, self).__init__(callback, uid)
 
     def _get_definitions(self):
-        definitions = self.script.goto_assignments()
-        if all(d.type == 'import' for d in definitions):
-            definitions = self.script.goto_definitions()
-        return definitions
+        """
+        Previously we used:
+            def _get_definitions(self):
+                definitions = self.script.goto_assignments()
+                if all(d.type == 'import' for d in definitions):
+                    definitions = self.script.goto_definitions()
+                return definitions
+        """
+        # TODO (CEV): check exception to see if it's worth continuing
+        try:
+            return self.script.goto_definitions()
+        except:
+            return self.script.goto_assignments()
 
     def run(self):
         """Run the command
