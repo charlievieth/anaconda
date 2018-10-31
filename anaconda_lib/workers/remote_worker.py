@@ -34,6 +34,7 @@ class RemoteWorker(Worker):
 
         return self._status()
 
+    # TODO (CEV): don't do this - instead switch the jedi environment
     def on_python_interpreter_switch(self, raw_python_interpreter):
         """This method is called when there is a python interpreter change
         """

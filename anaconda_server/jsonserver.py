@@ -34,6 +34,8 @@ from jedi import settings as jedi_settings
 from lib.anaconda_handler import AnacondaHandler
 
 
+# TODO (CEV): do not format messages before passing them to
+# the logger - that is slow - especially if we aren't logging
 DEBUG_MODE = False
 logger = logging.getLogger('jsonserver')
 PY3 = True if sys.version_info >= (3,) else False
@@ -339,6 +341,7 @@ if __name__ == "__main__":
     # TODO (CEV): ignore this warning
     server.logger = logger
 
+    # TODO (CEV): handle and log exceptions
     try:
         # start PID checker thread
         if PID != 'DEBUG':

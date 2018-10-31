@@ -61,6 +61,8 @@ class AnacondaCompletionEventListener(sublime_plugin.EventListener):
             return (cpl, completion_flags)
 
         location = view.rowcol(locations[0])
+        # TODO (CEV): include python interpreter and virtual env
+        # info for jedi.
         data = prepare_send_data(location, 'autocomplete', 'jedi')
 
         Worker().execute(self._complete, **data)

@@ -35,9 +35,11 @@ class AutoComplete(Command):
                 'success': True, 'completions': data, 'uid': self.uid
             })
         except Exception as error:
+            # TODO (CEV): use log.exception
             msg = 'The underlying Jedi library as raised an exception'
             logger.error(msg)
             logger.error(error)
+            # WARN (CEV): remove this print
             print(traceback.format_exc())
             if DEBUG_MODE:
                 logger.debug(traceback.format_exc())

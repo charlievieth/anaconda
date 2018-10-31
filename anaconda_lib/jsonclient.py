@@ -58,7 +58,7 @@ class AsynClient(EventHandler):
         class instance, a new uuid4 code is created on the fly.
         """
 
-        if not isinstance(callback, Callback):
+        if not isinstance(callback, Callback):  # TODO (CEV): don't use uuid
             hexid = uuid.uuid4().hex
         else:
             hexid = callback.hexid

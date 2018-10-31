@@ -136,6 +136,7 @@ class PythonLintHandler(AnacondaHandler):
                     if error['code'] in pylint_ignores and not pylint_rcfile:
                         continue
                 except TypeError:
+                    # WARN (CEV): remove print and log exception
                     print(
                         'Anaconda: pylint_ignore option must be a list of '
                         'strings but we got a {} '.format(type(pylint_ignores))

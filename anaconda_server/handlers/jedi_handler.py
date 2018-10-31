@@ -65,6 +65,7 @@ class JediHandler(AnacondaHandler):
             self, source, line, offset, filename='', encoding='utf-8', **kw):
         """Generate an usable Jedi Script
         """
+        # TODO (CEV): check if column is valid - see log ~18
         environment = self.get_environment()
         return jedi.Script(
             source=source,

@@ -57,6 +57,8 @@ class AnacondaGoto(sublime_plugin.TextCommand):
         """If this is a remote session, infere context data if any
         """
 
+        # TODO (CEV): cache this result instead of looking it up
+        # on each iteration
         if is_remote_session(self.view):
             window = self.view.window().id()
             try:
