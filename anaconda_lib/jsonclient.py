@@ -80,24 +80,21 @@ class AsynClient(EventHandler):
     def process_message(self) -> None:
         """Called when a full line has been read from the socket
         """
-
-        message = b''.join(self.rbuffer)
-        self.rbuffer = []
-
         try:
-            data = sublime.decode_value(message.decode('utf8'))
-        except (NameError, ValueError):
-            data = json.loads(message.replace(b'\t', b' ' * 8).decode('utf8'))
+            message = b''.join(self.rbuffer)  # TODO (CEV): check if message is empty
+            # JSON data is guaranteed to be ASCII encoded
+            data = json.loads(message.decode('ascii'))
+            self.rbuffer = []
 
-        callback = self.pop_callback(data.pop('uid'))
-        if callback is None:
-            logger.error(
-                'Received {} from the JSONServer but there is not callback '
-                'to handle it. Aborting....'.format(message)
-            )
-
-        try:
+            callback = self.pop_callback(data.pop('uid'))
+            if callback is None:
+                logger.error(
+                    'Received {} from the JSONServer but there is not callback '
+                    'to handle it. Aborting....'.format(message)
+                )
             callback(data)
+        except ValueError as error:
+            logging.error(error)  # JSON error
         except Exception as error:
             logging.error(error)
             for traceback_line in traceback.format_exc().splitlines():
@@ -107,13 +104,7 @@ class AsynClient(EventHandler):
         """Send the given command that should be handled bu the given callback
         """
         data['uid'] = self.add_callback(callback)
-
-        try:
-            self.push(
-                bytes('{}\r\n'.format(sublime.encode_value(data)), 'utf8')
-            )
-        except NameError:
-            self.push(bytes('{}\r\n'.format(json.dumps(data)), 'utf8'))
+        self.push(bytes('{}\r\n'.format(json.dumps(data)), 'ascii'))
 
     def __repr__(self):
         """String representation of the client

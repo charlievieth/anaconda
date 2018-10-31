@@ -17,7 +17,6 @@ import subprocess
 import json
 from optparse import OptionParser
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ANACONDA_LIB = os.path.abspath(os.path.join(SCRIPT_DIR, '..', 'anaconda_lib'))
 
@@ -55,14 +54,10 @@ class JSONHandler(asynchat.async_chat):
         """
 
         if data is not None:
-            print(data)
-            data = '{0}\r\n'.format(json.dumps(data))
-            data = bytes(data, 'utf8') if PY3 else data
-
+            body = bytes('{0}\r\n'.format(json.dumps(data)), 'ascii')
             if DEBUG_MODE is True:
-                print('About push back to ST3: {0}'.format(data))
                 logger.info('About push back to ST3: {0}'.format(data))
-            self.push(data)
+            self.push(body)
 
     def collect_incoming_data(self, data):
         """Called when data is ready to be read
