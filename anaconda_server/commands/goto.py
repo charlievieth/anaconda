@@ -6,7 +6,7 @@ import logging
 
 from .base import Command
 
-logger = logging.getLogger('lint')
+logger = logging.getLogger('goto')
 
 
 class Goto(Command):
@@ -17,7 +17,7 @@ class Goto(Command):
         self.script = script
         super(Goto, self).__init__(callback, uid)
 
-    def _build_goto_response(self, definitions):
+    def _build_response(self, definitions):
         if len(definitions) == 1:
             definition = definitions[0]
             if definition.in_builtin_module():
@@ -34,13 +34,13 @@ class Goto(Command):
     def _goto_definition(self):
         definitions = self.script.goto_definitions()
         if definitions:
-            return self._build_goto_response(definitions)
+            return self._build_response(definitions)
         raise RuntimeError('Can\'t jump to definition')
 
     def _goto_assignments(self):
         definitions = self.script.goto_assignments()
         if definitions:
-            return self._build_goto_response(definitions)
+            return self._build_response(definitions)
         raise RuntimeError('Can\'t jump to assignment')
 
     def _get_definitions(self):
