@@ -297,7 +297,8 @@ if __name__ == "__main__":
 
     queue_listener = setup_queue_logger(
         log_directory=log_directory,
-        level=logging.INFO,  # WARN (CEV): test only
+        # level=logging.INFO,  # WARN (CEV): test only
+        level=logging.WARN,  # WARN (CEV): test only
         debug=PID == 'DEBUG',
     )
 
@@ -350,7 +351,9 @@ if __name__ == "__main__":
             checker.start()
         else:
             logger.info('Anaconda Server started in DEBUG mode...')
-            DEBUG_MODE = True
+            # WARN (CEV): make this a command line option
+            # DEBUG_MODE = True
+            DEBUG_MODE = False
             # WARN (CEV): test only
             # set_debug_function(notices=True)
 
