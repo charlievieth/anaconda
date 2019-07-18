@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -e
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+echo "starting anaconda server..."
+# source "$DIR/venv/bin/activate"
+
+exec "$DIR/venv/bin/python" "$DIR/anaconda_server/jsonserver.py" -p test 9999 DEBUG \
+	1>>"$DIR/logs/out.log" \
+	2>>"$DIR/logs/err.log"
+
+# TODO: daemonize this script or fix Anaconda
+#
+# "$DIR/venv/bin/python" "$DIR/anaconda_server/jsonserver.py" -p test 9999 DEBUG \
+# 	1>>"$DIR/logs/out.log" \
+# 	2>>"$DIR/logs/err.log" &
+# disown -a -h
