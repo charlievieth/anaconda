@@ -269,11 +269,14 @@ if __name__ == "__main__":
     opt_parser.add_option(
         '-p', '--project', action='store', dest='project', help='project name'
     )
-
     opt_parser.add_option(
         '-e', '--extra_paths', action='store', dest='extra_paths',
         help='extra paths (separed by comma) that should be added to sys.paths'
     )
+    # TODO (CEV): add option to disable debug logging
+    # opt_parser.add_option(
+    #     '-nd', '--no_debug', action='store_true', help='disable DEBUG logging',
+    # )
 
     options, args = opt_parser.parse_args()
     port, PID = None, None
