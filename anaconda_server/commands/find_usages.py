@@ -23,14 +23,30 @@ class FindUsages(Command):
             definition = definitions[0]
             if definition.in_builtin_module():
                 raise RuntimeError('Can\' jump to builtin module')
-            return [(definition.full_name,
+            if definition.full_name:
+                name = definition.full_name
+            else:
+                name = definition.name
+            return [(name,
                      definition.module_path,
                      definition.line,
                      definition.column + 1)]
 
         # TODO: do we need to filter out duplicates ???
-        return [(i.full_name, i.module_path, i.line, i.column + 1)
-                for i in definitions if not i.in_builtin_module()]
+        usages = []
+        for definition in definitions:
+            if not definition.in_builtin_module():
+                if definition.full_name:
+                    name = definition.full_name
+                else:
+                    name = definition.name
+                usages.append((
+                    name,
+                    definition.module_path,
+                    definition.line,
+                    definition.column + 1,
+                ))
+        return usages
 
     def _find_usages(self):
         usages = self.script.usages()
