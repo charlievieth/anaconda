@@ -25,8 +25,10 @@ class FindUsages(Command):
                 raise RuntimeError('Can\' jump to builtin module')
             if definition.full_name:
                 name = definition.full_name
-            else:
+            elif definition.name:
                 name = definition.name
+            else:
+                name = ''
             return [(name,
                      definition.module_path,
                      definition.line,
@@ -38,8 +40,10 @@ class FindUsages(Command):
             if not definition.in_builtin_module():
                 if definition.full_name:
                     name = definition.full_name
-                else:
+                elif definition.name:
                     name = definition.name
+                else:
+                    name = ''
                 usages.append((
                     name,
                     definition.module_path,
