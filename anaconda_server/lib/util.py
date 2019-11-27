@@ -25,7 +25,7 @@ def setup_logger(log_directory, level=logging.DEBUG, debug=False):
         level=level,
         # TODO (CEV): use this format and name loggers
         # format='%(asctime)s %(name)s: %(levelname)s %(message)s',
-        format='%(asctime)s: %(levelname)-8s: %(message)s',
+        format='%(asctime)s: %(filename)s:#%(lineno)d %(levelname)s: %(message)s',
         handlers=hdlrs,
     )
 
@@ -50,7 +50,8 @@ def setup_queue_logger(log_directory, level=logging.DEBUG, debug=False):
     logging.basicConfig(
         level=level,
         # TODO (CEV): use this format and name loggers
-        format='%(asctime)s %(name)s: %(levelname)s %(message)s',
+        # format='%(asctime)s %(name)s: %(levelname)s %(message)s',
+        format='%(asctime)s: %(filename)s:#%(lineno)d %(levelname)s: %(message)s',
         # format='%(asctime)s: %(levelname)-8s: %(message)s',
         handlers=[queue_handler],
     )
