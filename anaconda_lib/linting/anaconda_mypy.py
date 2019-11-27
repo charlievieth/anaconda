@@ -14,6 +14,9 @@ import subprocess
 from subprocess import PIPE, Popen
 
 
+logger = logging.getLogger('mypy')
+
+
 MYPY_SUPPORTED = False
 MYPY_VERSION = None
 try:
@@ -25,7 +28,7 @@ try:
     del mypy
 except ImportError:
     print('MyPy is enabled but we could not import it')
-    logging.info('MyPy is enabled but we could not import it')
+    logger.info('MyPy is enabled but we could not import it')
     pass
 
 
@@ -58,7 +61,7 @@ class MyPy(object):
             errors = self.check_source()
         except Exception as error:
             print(error)
-            logging.error(error)
+            logger.exception('checking source')
 
         return errors
 
@@ -105,16 +108,17 @@ class MyPy(object):
                 continue
 
             data = line.split(':') if os.name != 'nt' else line[2:].split(':')
-            errors.append({
-                'level': 'W',
-                'lineno': int(data[1]),
-                'offset': 0,
-                'code': ' ',
-                'raw_error': '[W] MyPy {0}: {1}'.format(
-                    data[2], data[3]
-                ),
-                'message': '[W] MyPy%s: %s',
-                'underline_range': True
-            })
+            if len(data) >= 4:
+                errors.append({
+                    'level': 'W',
+                    'lineno': int(data[1]),
+                    'offset': 0,
+                    'code': ' ',
+                    'raw_error': '[W] MyPy {0}: {1}'.format(
+                        data[2], data[3]
+                    ),
+                    'message': '[W] MyPy%s: %s',
+                    'underline_range': True
+                })
 
         return errors
