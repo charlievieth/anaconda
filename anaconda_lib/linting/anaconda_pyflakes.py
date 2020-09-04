@@ -47,6 +47,13 @@ class PyFlakesLinter(linter.Linter):
 
     def check(self, code, filename, ignore=None):
         """Check the code with pyflakes to find errors
+
+        TODO (CEV): still missing:
+          pyflakes.messages.BreakOutsideLoop
+          pyflakes.messages.ContinueOutsideLoop
+          pyflakes.messages.ImportStarUsage
+          pyflakes.messages.MultiValueRepeatedKeyLiteral
+          pyflakes.messages.ReturnOutsideFunction
         """
 
         class FakeLoc:
@@ -103,19 +110,20 @@ class PyFlakesLinter(linter.Linter):
                     pyflakes.messages.UndefinedName,
                     pyflakes.messages.UndefinedExport,
                     pyflakes.messages.UndefinedLocal,
-                    pyflakes.messages.UnusedVariable)) and
+                    pyflakes.messages.UnusedVariable,
+                    pyflakes.messages.FStringMissingPlaceholders)) and
                     error.__class__.__name__ not in explicit_ignore):
 
                 error_data['len'] = len(error.message_args[0])
                 error_data['regex'] = (
                     r'((and|or|not|if|elif|while|in)\s+|[+\-*^%%<>=\(\{{])*\s'
-                    '*(?P<underline>[\w\.]*{0}[\w]*)'.format(re.escape(
+                    r'*(?P<underline>[\w\.]*{0}[\w]*)'.format(re.escape(
                         error.message_args[0]
                     ))
                 )
                 error_list.append(error_data)
             elif isinstance(error, pyflakes.messages.ImportShadowedByLoopVar):
-                regex = 'for\s+(?P<underline>[\w]*{0}[\w*])'.format(
+                regex = r'for\s+(?P<underline>[\w]*{0}[\w*])'.format(
                     re.escape(error.message_args[0])
                 )
                 error_data['regex'] = regex
@@ -130,8 +138,8 @@ class PyFlakesLinter(linter.Linter):
                 else:
                     word = error.message_args[0]
 
-                linematch = '(from\s+[\w_\.]+\s+)?import\s+(?P<match>[^#;]+)'
-                r = '(^|\s+|,\s*|as\s+)(?P<underline>[\w]*{0}[\w]*)'.format(
+                linematch = r'(from\s+[\w_\.]+\s+)?import\s+(?P<match>[^#;]+)'
+                r = r'(^|\s+|,\s*|as\s+)(?P<underline>[\w]*{0}[\w]*)'.format(
                     re.escape(word)
                 )
                 error_data['regex'] = r
@@ -139,7 +147,7 @@ class PyFlakesLinter(linter.Linter):
                 error_list.append(error_data)
             elif (isinstance(error, pyflakes.messages.DuplicateArgument) and
                     error.__class__.__name__ not in explicit_ignore):
-                regex = 'def [\w_]+\(.*?(?P<underline>[\w]*{0}[\w]*)'.format(
+                regex = r'def [\w_]+\(.*?(?P<underline>[\w]*{0}[\w]*)'.format(
                     re.escape(error.message_args[0])
                 )
                 error_data['regex'] = regex
@@ -149,6 +157,7 @@ class PyFlakesLinter(linter.Linter):
             elif isinstance(error, linter.PythonError):
                 print(error)
             else:
+                # pyflakes.messages.FStringMissingPlaceholders
                 print(
                     'Ooops, we missed an error type for pyflakes', type(error)
                 )
