@@ -12,4 +12,3 @@ from contextlib import contextmanager
 @contextmanager
 def json_decode(data):
     yield json.loads(data.decode('ascii'))
-

@@ -12,5 +12,5 @@ logpath = {
 }
 
 log_directory = os.path.expanduser(
-    logpath.get(platform.system().lower())
+    logpath.get(platform.system().lower(), '')
 )
