@@ -15,7 +15,7 @@ from commands import CompleteParameters, AutoComplete
 logger = logging.getLogger('jedi_handler')
 
 # WARN (CEV): cache this and handle interpreter changes
-jedi_environment = jedi.get_system_environment('3.7')
+jedi_environment = jedi.get_system_environment('3.8')
 
 
 class JediHandler(AnacondaHandler):
