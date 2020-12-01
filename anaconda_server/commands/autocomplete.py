@@ -3,7 +3,6 @@
 # This program is Free Software see LICENSE file for details
 
 import logging
-import traceback
 
 from .base import Command
 
@@ -24,6 +23,7 @@ class AutoComplete(Command):
         """
 
         try:
+            # TODO: completions() is deprecated use complete
             completions = self.script.completions()
             if DEBUG_MODE is True:
                 logger.info(completions)
@@ -35,14 +35,7 @@ class AutoComplete(Command):
                 'success': True, 'completions': data, 'uid': self.uid
             })
         except Exception as error:
-            # TODO (CEV): use log.exception
-            msg = 'The underlying Jedi library as raised an exception'
-            logger.error(msg)
-            logger.error(error)
-            # WARN (CEV): remove this print
-            print(traceback.format_exc())
-            if DEBUG_MODE:
-                logger.debug(traceback.format_exc())
+            logger.exception('The underlying Jedi library as raised an exception')
 
             self.callback({
                 'success': False, 'error': str(error), 'uid': self.uid
