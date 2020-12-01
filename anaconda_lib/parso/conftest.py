@@ -13,8 +13,8 @@ from parso.utils import parse_version_string
 
 collect_ignore = ["setup.py"]
 
-VERSIONS_2 = '2.6', '2.7'
-VERSIONS_3 = '3.3', '3.4', '3.5', '3.6', '3.7', '3.8'
+VERSIONS_2 = '2.7',
+VERSIONS_3 = '3.4', '3.5', '3.6', '3.7', '3.8'
 
 
 @pytest.fixture(scope='session')
@@ -58,7 +58,9 @@ def pytest_generate_tests(metafunc):
     elif 'each_py3_version' in metafunc.fixturenames:
         metafunc.parametrize('each_py3_version', VERSIONS_3)
     elif 'version_ge_py36' in metafunc.fixturenames:
-        metafunc.parametrize('version_ge_py36', ['3.6', '3.7'])
+        metafunc.parametrize('version_ge_py36', ['3.6', '3.7', '3.8'])
+    elif 'version_ge_py38' in metafunc.fixturenames:
+        metafunc.parametrize('version_ge_py38', ['3.8'])
 
 
 class NormalizerIssueCase(object):
@@ -85,12 +87,12 @@ def pytest_configure(config):
         root = logging.getLogger()
         root.setLevel(logging.DEBUG)
 
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
+        #ch = logging.StreamHandler(sys.stdout)
+        #ch.setLevel(logging.DEBUG)
         #formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         #ch.setFormatter(formatter)
 
-        root.addHandler(ch)
+        #root.addHandler(ch)
 
 
 class Checker():
@@ -156,8 +158,17 @@ def works_ge_py35(each_version):
     version_info = parse_version_string(each_version)
     return Checker(each_version, version_info >= (3, 5))
 
+@pytest.fixture
+def works_ge_py36(each_version):
+    version_info = parse_version_string(each_version)
+    return Checker(each_version, version_info >= (3, 6))
 
 @pytest.fixture
 def works_ge_py38(each_version):
     version_info = parse_version_string(each_version)
     return Checker(each_version, version_info >= (3, 8))
+
+@pytest.fixture
+def works_ge_py39(each_version):
+    version_info = parse_version_string(each_version)
+    return Checker(each_version, version_info >= (3, 9))

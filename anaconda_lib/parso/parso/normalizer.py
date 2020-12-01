@@ -12,6 +12,9 @@ class _NormalizerMeta(type):
 
 
 class Normalizer(use_metaclass(_NormalizerMeta)):
+    _rule_type_instances = {}
+    _rule_value_instances = {}
+
     def __init__(self, grammar, config):
         self.grammar = grammar
         self._config = config
@@ -119,7 +122,6 @@ class NormalizerConfig(object):
 
 class Issue(object):
     def __init__(self, node, code, message):
-        self._node = node
         self.code = code
         """
         An integer code that stands for the type of error.
@@ -133,6 +135,7 @@ class Issue(object):
         The start position position of the error as a tuple (line, column). As
         always in |parso| the first line is 1 and the first column 0.
         """
+        self.end_pos = node.end_pos
 
     def __eq__(self, other):
         return self.start_pos == other.start_pos and self.code == other.code
@@ -160,7 +163,7 @@ class Rule(object):
     def get_node(self, node):
         return node
 
-    def _get_message(self, message):
+    def _get_message(self, message, node):
         if message is None:
             message = self.message
             if message is None:
@@ -173,7 +176,7 @@ class Rule(object):
             if code is None:
                 raise ValueError("The error code on the class is not set.")
 
-        message = self._get_message(message)
+        message = self._get_message(message, node)
 
         self._normalizer.add_issue(node, code, message)
 
@@ -181,3 +184,20 @@ class Rule(object):
         if self.is_issue(node):
             issue_node = self.get_node(node)
             self.add_issue(issue_node)
+
+
+class RefactoringNormalizer(Normalizer):
+    def __init__(self, node_to_str_map):
+        self._node_to_str_map = node_to_str_map
+
+    def visit(self, node):
+        try:
+            return self._node_to_str_map[node]
+        except KeyError:
+            return super(RefactoringNormalizer, self).visit(node)
+
+    def visit_leaf(self, leaf):
+        try:
+            return self._node_to_str_map[leaf]
+        except KeyError:
+            return super(RefactoringNormalizer, self).visit_leaf(leaf)

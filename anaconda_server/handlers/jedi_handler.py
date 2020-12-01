@@ -8,14 +8,13 @@ import os
 
 import jedi
 from lib.anaconda_handler import AnacondaHandler
-from jedi import refactoring as jedi_refactor
 from commands import Doc, Goto, GotoAssignment, Rename, FindUsages
 from commands import CompleteParameters, AutoComplete
 
 logger = logging.getLogger('jedi_handler')
 
 # WARN (CEV): cache this and handle interpreter changes
-jedi_environment = jedi.get_system_environment('3.8')
+jedi_environment = jedi.get_system_environment('3.9')
 
 
 class JediHandler(AnacondaHandler):
@@ -81,10 +80,16 @@ class JediHandler(AnacondaHandler):
         """Rename the object under the cursor by the given word
         """
 
-        Rename(
-            self.callback, self.uid, self.script,
-            directories, new_word, jedi_refactor
-        )
+        # FIXME: rename is now implemented by the Script class and we need may
+        # to need to include line/col info since I was getting 'There is no
+        # name under the cursor' exceptions.
+        #
+        # Rename(
+        #     self.callback, self.uid, self.script,
+        #     directories, new_word, jedi_refactor
+        # )
+        #
+        raise NotImplementedError('rename not implemented')
 
     def autocomplete(self):
         """Call autocomplete

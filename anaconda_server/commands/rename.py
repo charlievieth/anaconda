@@ -4,7 +4,6 @@
 
 import os
 import logging
-import traceback
 
 from .base import Command
 
@@ -29,7 +28,8 @@ class Rename(Command):
         renames = {}
         try:
             usages = self.script.usages()
-            proposals = self.jedi_refactor.rename(self.script, self.new_word)
+            # FIXME: rename is now implemented by the Script class
+            proposals = self.jedi_refactor.rename(new_name=self.new_word)
             for u in usages:
                 path = os.path.dirname(u.module_path)
                 if self.is_same_path(path):
@@ -47,9 +47,7 @@ class Rename(Command):
                     })
             success = True
         except Exception as error:
-            # TODO (CEV): use logger.exception()
-            logger.error(error)
-            logger.debug(traceback.format_exc().splitlines())
+            logger.exception(error)
             success = False
 
         self.callback({

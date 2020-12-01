@@ -52,9 +52,37 @@ FAILING_EXAMPLES = [
     'f(x=2, y)',
     'f(**x, *y)',
     'f(**x, y=3, z)',
+    # augassign
     'a, b += 3',
     '(a, b) += 3',
     '[a, b] += 3',
+    'f() += 1',
+    'lambda x:None+=1',
+    '{} += 1',
+    '{a:b} += 1',
+    '{1} += 1',
+    '{*x} += 1',
+    '(x,) += 1',
+    '(x, y if a else q) += 1',
+    '[] += 1',
+    '[1,2] += 1',
+    '[] += 1',
+    'None += 1',
+    '... += 1',
+    'a > 1 += 1',
+    '"test" += 1',
+    '1 += 1',
+    '1.0 += 1',
+    '(yield) += 1',
+    '(yield from x) += 1',
+    '(x if x else y) += 1',
+    'a() += 1',
+    'a + b += 1',
+    '+a += 1',
+    'a and b += 1',
+    '*a += 1',
+    'a, b += 1',
+    'f"xxx" += 1',
     # All assignment tests
     'lambda a: 1 = 1',
     '[x for x in y] = 1',
@@ -281,11 +309,11 @@ if sys.version_info >= (3, 6):
         # Same as above, but for f-strings.
         'f"s" b""',
         'b"s" f""',
+
+        # f-string expression part cannot include a backslash
+        r'''f"{'\n'}"''',
     ]
-if sys.version_info >= (2, 7):
-    # This is something that raises a different error in 2.6 than in the other
-    # versions. Just skip it for 2.6.
-    FAILING_EXAMPLES.append('[a, 1] += 3')
+FAILING_EXAMPLES.append('[a, 1] += 3')
 
 if sys.version_info[:2] == (3, 5):
     # yields are not allowed in 3.5 async functions. Therefore test them
@@ -308,6 +336,12 @@ if sys.version_info[:2] <= (3, 4):
         '(*[1], 2)',
     ]
 
+if sys.version_info[:2] >= (3, 7):
+    # This is somehow ok in previous versions.
+    FAILING_EXAMPLES += [
+        'class X(base for base in bases): pass',
+    ]
+
 if sys.version_info[:2] < (3, 8):
     FAILING_EXAMPLES += [
         # Python/compile.c
@@ -318,4 +352,46 @@ if sys.version_info[:2] < (3, 8):
                 finally:
                     continue
             '''),  # 'continue' not supported inside 'finally' clause"
+    ]
+
+if sys.version_info[:2] >= (3, 8):
+    # assignment expressions from issue#89
+    FAILING_EXAMPLES += [
+        # Case 2
+        '(lambda: x := 1)',
+        '((lambda: x) := 1)',
+        # Case 3
+        '(a[i] := x)',
+        '((a[i]) := x)',
+        '(a(i) := x)',
+        # Case 4
+        '(a.b := c)',
+        '[(i.i:= 0) for ((i), j) in range(5)]',
+        # Case 5
+        '[i:= 0 for i, j in range(5)]',
+        '[(i:= 0) for ((i), j) in range(5)]',
+        '[(i:= 0) for ((i), j), in range(5)]',
+        '[(i:= 0) for ((i), j.i), in range(5)]',
+        '[[(i:= i) for j in range(5)] for i in range(5)]',
+        '[i for i, j in range(5) if True or (i:= 1)]',
+        '[False and (i:= 0) for i, j in range(5)]',
+        # Case 6
+        '[i+1 for i in (i:= range(5))]',
+        '[i+1 for i in (j:= range(5))]',
+        '[i+1 for i in (lambda: (j:= range(5)))()]',
+        # Case 7
+        'class Example:\n [(j := i) for i in range(5)]',
+        # Not in that issue
+        '(await a := x)',
+        '((await a) := x)',
+        # new discoveries
+        '((a, b) := (1, 2))',
+        '([a, b] := [1, 2])',
+        '({a, b} := {1, 2})',
+        '({a: b} := {1: 2})',
+        '(a + b := 1)',
+        '(True := 1)',
+        '(False := 1)',
+        '(None := 1)',
+        '(__debug__ := 1)',
     ]
