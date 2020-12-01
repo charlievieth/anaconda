@@ -8,7 +8,7 @@ import os
 
 import jedi
 from lib.anaconda_handler import AnacondaHandler
-from commands import Doc, Goto, GotoAssignment, Rename, FindUsages
+from commands import Doc, Goto, GotoAssignment, FindUsages
 from commands import CompleteParameters, AutoComplete
 
 logger = logging.getLogger('jedi_handler')
