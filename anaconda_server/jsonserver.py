@@ -142,13 +142,19 @@ class JSONServer(asyncore.dispatcher):
         address_family = socket.AF_UNIX
     socket_type = socket.SOCK_STREAM
 
-    def __init__(self, address, handler=JSONHandler):
+    def __init__(self, address, handler=JSONHandler, allow_reuse_address=False):
         self.address = address
         self.handler = handler
+        self.allow_reuse_address = allow_reuse_address
 
         asyncore.dispatcher.__init__(self)
         self.create_socket(self.address_family, self.socket_type)
         self.last_call = time.time()
+
+        # CEV: useful when debugging since it takes awhile for
+        # address to be reusable on macOS.
+        if self.allow_reuse_address:
+            self.set_reuse_addr()
 
         self.bind(self.address)
         logger.debug('bind: address=%s' % (address,))
@@ -160,7 +166,10 @@ class JSONServer(asyncore.dispatcher):
         return self.socket.fileno()
 
     def serve_forever(self):
-        asyncore.loop()
+        try:
+            asyncore.loop()
+        finally:
+            self.shutdown()
 
     def shutdown(self):
         self.handle_close()
@@ -298,11 +307,13 @@ if __name__ == "__main__":
         )
         log_directory = os.path.join(log_directory, options.project)
 
+    debug_pid = PID == 'DEBUG'
+
     queue_listener = setup_queue_logger(
         log_directory=log_directory,
         # level=logging.INFO,  # WARN (CEV): test only
         level=logging.WARN,  # WARN (CEV): test only
-        debug=PID == 'DEBUG',
+        debug=debug_pid,
     )
 
     if not os.path.exists(jedi_settings.cache_directory):
@@ -316,7 +327,8 @@ if __name__ == "__main__":
     server = None
     try:
         if not LINUX:
-            server = JSONServer(('localhost', port))
+            server = JSONServer(
+                ('localhost', port), allow_reuse_address=debug_pid)
         else:
             unix_socket_path = UnixSocketPath(options.project)
             if not os.path.exists(os.path.dirname(unix_socket_path.socket)):
