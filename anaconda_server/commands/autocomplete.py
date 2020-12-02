@@ -7,6 +7,8 @@ import logging
 from .base import Command
 
 DEBUG_MODE = False
+FUZZY_MATCHING = True
+
 logger = logging.getLogger('autocomplete')
 
 
@@ -24,7 +26,7 @@ class AutoComplete(Command):
 
         try:
             # TODO: completions() is deprecated use complete
-            completions = self.script.completions()
+            completions = self.script.completions(fuzzy=FUZZY_MATCHING)
             if DEBUG_MODE is True:
                 logger.info(completions)
             data = [
