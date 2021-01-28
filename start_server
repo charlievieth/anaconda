@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+cd "$DIR"
+
+LOGDIR="$DIR/logs"
+PIDDIR="$LOGDIR/pid"
+mkdir -p "$PIDDIR"
+
+ERRLOG="$DIR/logs/server.err.log"
+OUTLOG="$DIR/logs/server.out.log"
+
+if hash gdate 2>/dev/null; then
+    date="$(type -P gdate)"
+else
+    date="$(type -P date)"
+fi
+
+if $date --rfc-3339=seconds >/dev/null 2>&1; then
+    date_args=(--rfc-3339=seconds)
+else
+    date_args=(-R)
+fi
+
+timestamp() { $date "${date_args[*]}"; }
+
+die() {
+    echo -e "[$(timestamp)] $(basename "$0"):" "$@" | tee -a "$ERRLOG"
+    exit 1
+}
+
+log_all() {
+    echo -e "[$(timestamp)] $(basename "$0"):" "$@" |
+        tee -a "$ERRLOG" "$OUTLOG" >/dev/null
+}
+
+usage() {
+    echo "$(basename "$0"): COMMAND"
+    echo ''
+    echo 'Commands:'
+    echo '    restart: restart the anaconda server (if running)'
+    echo '    running: check if the anaconda server is running'
+    echo '    stop: stop the anaconda server (if running)'
+    echo '    start (default): start the anaconda server, if not running'
+}
+
+base_flags=(
+    --pidfiles="$PIDDIR"
+    --name=anaconda-server
+)
+
+daemon_command() {
+    local arg="$1"
+    local retcode=0
+    if ! daemon "${base_flags[@]}" "${arg}"; then
+        retcode=1
+        log_all "${arg##--}: error"
+    else
+        log_all "${arg##--}: success"
+    fi
+    return $retcode
+}
+
+cmd="${1:-start}"
+case "$cmd" in
+    restart)
+        daemon_command --restart
+        ;;
+    running)
+        daemon_command --running
+        ;;
+    stop)
+        daemon_command --stop
+        ;;
+    start)
+        flags=(
+            "${base_flags[@]}"
+            --noconfig
+            --inherit
+            --dbglog="$LOGDIR/daemon.dbg.log"
+            --errlog="$LOGDIR/daemon.err.log"
+            --stdout="$OUTLOG"
+            --stderr="$ERRLOG"
+        )
+
+        log_all "starting"
+
+        # start the server
+        if ! daemon "${flags[@]}" -- "$DIR/run_server"; then
+            die 'error: daemon failed to start anaconda-server'
+        fi
+
+        # check that the server started
+        if ! daemon "${base_flags[@]}" --running; then
+            die 'error: anaconda-server not running'
+        fi
+        ;;
+    help | usage)
+        usage
+        ;;
+    *)
+        die "unrecognized option '$cmd'\nTry 'help' for more information" >&2
+        ;;
+esac
+
+exit 0

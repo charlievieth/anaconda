@@ -1,27 +1,37 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-echo "starting anaconda server..."
+source "$DIR/venv/bin/activate"
+
+exec "$DIR/venv/bin/python" "$DIR/anaconda_server/jsonserver.py" -p test 9999 DEBUG
+
+# set -e
+#
+# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#
+# echo "starting anaconda server..."
+# # source "$DIR/venv/bin/activate"
+#
+# if date --rfc-3339=seconds > /dev/null 2>&1; then
+# 	timestamp="$(gdate --rfc-3339=seconds)"
+# elif gdate --rfc-3339=seconds > /dev/null 2>&1; then
+# 	timestamp="$(gdate --rfc-3339=seconds)"
+# else
+# 	timestamp="$(date -R)"
+# fi
+#
+# mkdir -p "$DIR/logs"
+# printf '\n## [%s] STARTING:\n' "$timestamp" >> "$DIR/logs/out.log"
+# printf '\n## [%s] STARTING:\n' "$timestamp" >> "$DIR/logs/err.log"
+#
 # source "$DIR/venv/bin/activate"
-
-if date --rfc-3339=seconds > /dev/null 2>&1; then
-	timestamp="$(gdate --rfc-3339=seconds)"
-elif gdate --rfc-3339=seconds > /dev/null 2>&1; then
-	timestamp="$(gdate --rfc-3339=seconds)"
-else
-	timestamp="$(date -R)"
-fi
-
-mkdir -p "$DIR/logs"
-printf '\n## [%s] STARTING:\n' "$timestamp" >> "$DIR/logs/out.log"
-printf '\n## [%s] STARTING:\n' "$timestamp" >> "$DIR/logs/err.log"
-
-exec "$DIR/venv/bin/python" "$DIR/anaconda_server/jsonserver.py" -p test 9999 DEBUG \
-	1>>"$DIR/logs/out.log" \
-	2>>"$DIR/logs/err.log"
+#
+# exec "$DIR/venv/bin/python" "$DIR/anaconda_server/jsonserver.py" -p test 9999 DEBUG \
+# 	1>>"$DIR/logs/out.log" \
+# 	2>>"$DIR/logs/err.log"
 
 # TODO: daemonize this script or fix Anaconda
 #
