@@ -46,3 +46,9 @@ Main.sublime-menu
 
 # mypy cache
 .mypy_cache/
+
+# server logs
+/logs
+
+# temp dir
+/tmp
